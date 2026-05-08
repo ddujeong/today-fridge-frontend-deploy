@@ -77,7 +77,7 @@ export default function Modal({
             onClose?.();
         }
     };
-
+    if (typeof document === "undefined") return null;
     return createPortal(
         <div
             className={base.overlay}

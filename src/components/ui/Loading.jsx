@@ -40,7 +40,7 @@ export default function Loading({ isOpen = false, text = "불러오는 중..." }
             color: "var(--text-main)",
         },
     };
-
+    if (typeof document === "undefined") return null;
     return createPortal(
         <div className={base.overlay} style={inlineStyle.overlay} role="status" aria-live="polite">
             <div className={base.panel} style={inlineStyle.panel}>
