@@ -9,7 +9,7 @@ import CookRecipeButton from "@/components/recipe/CookRecipeButton";
 import BookmarkButton from "@/components/recipe/BookmarkButton";
 import styles from "./Recipe.module.css";
 import { getRecipeDetail } from "@/api/recipeApi";
-import { notFound, useParams } from 'next/navigation';
+import { useRouter, useParams } from 'next/navigation';
 import PublicLayout from "@/components/layout/public/PublicLayout";
 
 export default function RecipePage() {
@@ -63,7 +63,8 @@ export default function RecipePage() {
 
   if (error || !recipeData) {
     console.log("[Step 4] 에러 발생 또는 데이터 없음 - 404 페이지로 이동");
-    return notFound();
+    router.replace('/404');
+    return;
   }
 
   console.log("[Step 5] 데이터 가공 시작 (영양 성분 및 메타데이터)");
