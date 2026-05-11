@@ -1,7 +1,24 @@
 import axios from "axios";
 
+const rawApiBaseUrl = (
+  process.env.NEXT_PUBLIC_API_URL ||
+  process.env.NEXT_PUBLIC_API_BASE_URL ||
+  "/api"
+).replace(/\/$/, "");
+
+const isLocalhostUrl = /https?:\/\/(localhost|127\.0\.0\.1)(:\d+)?/i.test(rawApiBaseUrl);
+
+// In development, call backend directly (e.g. localhost:8080) when provided.
+// In production, keep same-origin '/api' fallback for safety.
+const API_BASE_URL =
+  process.env.NODE_ENV === "development"
+    ? rawApiBaseUrl
+    : isLocalhostUrl
+      ? "/api"
+      : rawApiBaseUrl;
+
 const api = axios.create({
-  baseURL: process.env.NEXT_PUBLIC_API_URL || "http://localhost:8080/api",
+  baseURL: API_BASE_URL,
   withCredentials: true,
   headers: {
     "Content-Type": "application/json",
@@ -16,15 +33,11 @@ function delay(ms) {
 }
 
 function isRetryableNetworkError(error) {
-  return (
-    error?.code === RETRYABLE_NETWORK_CODE &&
-    !error?.response
-  );
+  return error?.code === RETRYABLE_NETWORK_CODE && !error?.response;
 }
 
 api.interceptors.request.use(
   (config) => {
-    // 서버가 HTTP-only 쿠키(accessToken)로 인증 → UserIdResolutionFilter가 JWT에서 X-User-Id를 자동 주입
     return config;
   },
   (error) => Promise.reject(error)
@@ -41,7 +54,6 @@ api.interceptors.response.use(
       if (retryCount < MAX_NETWORK_RETRIES) {
         config.__networkRetryCount = retryCount + 1;
 
-        // 1st retry: 300ms, 2nd retry: 800ms
         const backoffMs = retryCount === 0 ? 300 : 800;
         await delay(backoffMs);
 

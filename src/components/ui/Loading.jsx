@@ -1,20 +1,27 @@
 'use client';
 
-import { useEffect } from "react";
+import { useEffect, useState } from "react";
 import { createPortal } from "react-dom";
 
 export default function Loading({ isOpen = false, text = "불러오는 중..." }) {
-    useEffect(() => {
-        if (!isOpen) return;
+    const [mounted, setMounted] = useState(false);
 
+    useEffect(() => {
+        setMounted(true);
+    }, []);
+
+    useEffect(() => {
+        if (!mounted || !isOpen) return;
+
+        const previousOverflow = document.body.style.overflow;
         document.body.style.overflow = "hidden";
 
         return () => {
-            document.body.style.overflow = "";
+            document.body.style.overflow = previousOverflow;
         };
-    }, [isOpen]);
+    }, [mounted, isOpen]);
 
-    if (!isOpen) return null;
+    if (!mounted || !isOpen) return null;
 
     const base = {
         overlay: "fixed inset-0 z-50 flex items-center justify-center px-4 py-6",
@@ -42,7 +49,12 @@ export default function Loading({ isOpen = false, text = "불러오는 중..." }
     };
     if (typeof document === "undefined") return null;
     return createPortal(
-        <div className={base.overlay} style={inlineStyle.overlay} role="status" aria-live="polite">
+        <div
+            className={base.overlay}
+            style={inlineStyle.overlay}
+            role="status"
+            aria-live="polite"
+        >
             <div className={base.panel} style={inlineStyle.panel}>
                 <div className={base.spinner} style={inlineStyle.spinner} />
                 <p className={base.text} style={inlineStyle.text}>

@@ -15,7 +15,7 @@ export default function BookmarkButton({ recipeId }) {
     const fetchStatus = async () => {
       if (user && user.userId) {
         try {
-          const status = await checkBookmarkStatus(recipeId, user.userId);
+          const status = await checkBookmarkStatus(recipeId);
           setIsBookmarked(status === true || status?.isBookmarked === true);
         } catch (error) {
           console.error("북마크 상태 확인 실패:", error);
@@ -41,10 +41,10 @@ export default function BookmarkButton({ recipeId }) {
     setLoading(true);
     try {
       if (isBookmarked) {
-        await removeBookmark(recipeId, user.userId);
+        await removeBookmark(recipeId);
         setIsBookmarked(false);
       } else {
-        await addBookmark(recipeId, user.userId);
+        await addBookmark(recipeId);
         setIsBookmarked(true);
       }
     } catch (error) {

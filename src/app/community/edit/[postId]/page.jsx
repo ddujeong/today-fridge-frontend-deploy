@@ -74,7 +74,7 @@ export default function CommunityEditPage() {
                 if (postData.images && postData.images.length > 0) {
                     const loadedImages = postData.images.map((img, idx) => ({
                         id: `existing-${idx}`,
-                        preview: `http://43.201.1.45/uploads/community/${img.storedName}`,
+                        preview: `https://www.todayfridge.today/uploads/community/${img.storedName}`,
                         isExisting: true,
                         storedName: img.storedName
                     }));
@@ -237,11 +237,11 @@ export default function CommunityEditPage() {
                                 value={recipe}
                                 onChange={(e) => setRecipe(e.target.value)}
                             >
-                                {/* 등록 페이지와 동일하게 조건부 렌더링 적용 */}
+                                {/* 💡 수정된 부분: item.recipeName -> item.title */}
                                 {bookmarkedRecipes.length > 0 ? (
                                     bookmarkedRecipes.map((item) => (
                                         <option key={item.recipeId} value={item.recipeId}>
-                                            {item.recipeName}
+                                            {item.title}
                                         </option>
                                     ))
                                 ) : (
@@ -334,10 +334,6 @@ export default function CommunityEditPage() {
                                 <img className="w-full h-full object-cover" src={placeholderSvg} alt="비어 있음" />
                             </div>
                         )}
-                        <div className="flex flex-wrap gap-2 mt-4">
-                            <CustomTag variant="secondary">기존 이미지 유지 가능</CustomTag>
-                            <CustomTag color="success">PATCH 메소드 대응</CustomTag>
-                        </div>
                     </Card>
                 </div>
             </Section>

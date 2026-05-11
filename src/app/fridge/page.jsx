@@ -184,8 +184,6 @@ export default function FridgePage() {
     /** 이미지 인식 API 실패 시 사용자 안내 */
     const [visionRecognitionError, setVisionRecognitionError] = useState("");
 
-    const RecipeList = getRecipeList();
-
     const fetchIngredients = useCallback(async () => {
         try {
             const res = await fridgeApi.getIngredients();
@@ -282,15 +280,6 @@ export default function FridgePage() {
             setMutatingText("");
         }
     };
-
-    function getRecipeList() {
-        const url = TestImg.src || TestImg;
-        return ([
-            { name: "레시피 1", time: "30분", difficulty: "쉬움", imageURL: url },
-            { name: "레시피 1", time: "30분", difficulty: "쉬움", imageURL: url },
-            { name: "레시피 1", time: "30분", difficulty: "쉬움", imageURL: url },
-        ]);
-    }
 
     const storageCategories = Object.keys(StorageType).map(typeKey => ({
         type: StorageType[typeKey],
@@ -416,21 +405,6 @@ export default function FridgePage() {
                     </Card>
                 ))}
 
-                {/* 추천 레시피 카드 */}
-                <Card>
-                    <div className="text-lg font-bold mb-6">추천 레시피</div>
-                    <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
-                        {RecipeList.map((each, idx) => (
-                            <Recipe
-                                key={idx}
-                                name={each.name}
-                                time={each.time}
-                                difficulty={each.difficulty}
-                                imageURL={each.imageURL}
-                            />
-                        ))}
-                    </div>
-                </Card>
                 <Loading
                     isOpen={isRecognizing || isMutating}
                     text={isRecognizing ? "이미지 인식하는 중.." : mutatingText}

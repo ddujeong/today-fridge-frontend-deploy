@@ -1,4 +1,5 @@
 import api from "@/config/axios";
+import { unwrapApiData } from "@/api/utils";
 
 export const getAllRecipes = async (
     page = 0,
@@ -15,10 +16,10 @@ export const getAllRecipes = async (
 
 export const getRecipeDetail = async (id) => {
     const response = await api.get(`/v1/recipes/${id}`);
-    return response.data;
+    return unwrapApiData(response);
 };
 
 export const cookRecipe = async (id) => {
     const response = await api.post(`/v1/recipes/${id}/cooked`);
-    return response.data;
+    return unwrapApiData(response);
 };

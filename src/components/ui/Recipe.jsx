@@ -4,7 +4,9 @@ import BookMarkButton from "./BookMarkButton";
 import CustomTag from "./Tag";
 import { Tooltip } from "antd";
 import { addBookmark, removeBookmark, checkBookmarkStatus } from "@/api/bookmarkApi";
-import { getMeApi, user } from "@/api/authApi";
+import { getSubstitutionSuggestions } from "@/api/substitutionApi";
+import Modal from "./Modal";
+import { useAuth } from "@/context/AuthContext";
 
 const conditionTagMap = {
     DIABETES_LOW_SUGAR: { label: "당뇨 주의", variant: "accent" },
@@ -32,10 +34,14 @@ export default function Recipe({
     missingIngredients = [],
     substituteSuggestions = [],
     warnings = [],
+    ownedIngredients = [],
     onBookmarkToggle
 }) {
+    const { user } = useAuth();
     const [isBookmarked, setIsBookmarked] = useState(false);
-    const firstSubstitute = substituteSuggestions[0];
+    const [substitutionData, setSubstitutionData] = useState(null);
+    const [isSubstitutionOpen, setIsSubstitutionOpen] = useState(false);
+    const [isSubstitutionLoading, setIsSubstitutionLoading] = useState(false);
 
     useEffect(() => {
         const fetchBookmarkStatus = async () => {
@@ -45,19 +51,17 @@ export default function Recipe({
                     return;
                 }
 
-                let userId = user?.userId;
-                if (!userId) {
-                    const me = await getMeApi();
-                    userId = me?.userId;
-                }
+                const userId = user?.userId;
 
                 if (!userId) {
                     setIsBookmarked(false);
                     return;
                 }
 
-                const status = await checkBookmarkStatus(recipeId, userId);
-                setIsBookmarked(Boolean(status?.isBookmarked));
+                const status = await checkBookmarkStatus(recipeId);
+                setIsBookmarked(
+                    status === true || status?.isBookmarked === true
+                );
             } catch (error) {
                 console.error("북마크 상태 확인 실패:", error);
                 setIsBookmarked(false);
@@ -65,27 +69,23 @@ export default function Recipe({
         };
 
         fetchBookmarkStatus();
-    }, [recipeId]);
+    }, [recipeId, user?.userId]);
 
     const handleBookmarkToggle = async (nextBookmarked) => {
         try {
             if (!recipeId) return false;
 
-            let userId = user?.userId;
-            if (!userId) {
-                const me = await getMeApi();
-                userId = me?.userId;
-            }
+            const userId = user?.userId;
             if (!userId) return false;
 
             if (nextBookmarked === false) {
-                await removeBookmark(recipeId, userId);
+                await removeBookmark(recipeId);
                 setIsBookmarked(false);
                 onBookmarkToggle?.(false);
                 return false;
             }
 
-            await addBookmark(recipeId, userId);
+            await addBookmark(recipeId);
             setIsBookmarked(true);
             onBookmarkToggle?.(true);
             return true;
@@ -94,7 +94,46 @@ export default function Recipe({
             return false;
         }
     };
+    const handleSubstitutionClick = async (e) => {
+        e.stopPropagation();
 
+        if (substitutionData) {
+            setIsSubstitutionOpen(true);
+            return;
+        }
+
+        try {
+            setIsSubstitutionLoading(true);
+
+            const data = await getSubstitutionSuggestions(
+                recipeId,
+                ownedIngredients
+            );
+
+            setSubstitutionData(data);
+            setIsSubstitutionOpen(true);
+        } catch (error) {
+            console.error("대체재 추천 조회 실패:", error);
+        } finally {
+            setIsSubstitutionLoading(false);
+        }
+    };
+    const decisionTypeStyles = {
+        SUBSTITUTE_AVAILABLE:
+            "bg-green-100 text-green-700 border border-green-200",
+
+        OPTIONAL:
+            "bg-amber-100 text-amber-700 border border-amber-200",
+
+        REQUIRED:
+            "bg-rose-100 text-rose-700 border border-rose-200",
+    };
+
+    const decisionTypeLabels = {
+        SUBSTITUTE_AVAILABLE: "대체 가능",
+        OPTIONAL: "생략 가능",
+        REQUIRED: "필수 재료",
+    };
     return (
         <div className="w-full overflow-hidden rounded-2xl bg-gray-100 border border-gray-100 flex flex-col">
 
@@ -204,43 +243,18 @@ export default function Recipe({
                             </Tooltip>
 
 
-                            {substituteSuggestions.length > 0 && (
-                                <CustomTag variant="secondary">
-                                    대체재 가능
+                            {missingIngredients.length > 0 && (
+                                <CustomTag
+                                    variant="action"
+                                    onClick={handleSubstitutionClick}
+                                >
+                                    {isSubstitutionLoading
+                                        ? "확인 중..."
+                                        : "대체재 보기"}
                                 </CustomTag>
                             )}
 
                         </div>
-
-
-                        {/* 대체재 한 줄 */}
-                        {firstSubstitute && (
-                            <div className="text-xs text-gray-600 leading-relaxed">
-                                대체재{" "}
-                                <span className="font-medium text-gray-800">
-                                    {firstSubstitute.missingIngredient}
-                                </span>
-                                {" → "}
-                                <span className="font-medium text-gray-800">
-                                    {firstSubstitute.substituteIngredient || "없음"}
-                                </span>
-
-                                {" "}
-
-                                <span
-                                    className={
-                                        firstSubstitute.decisionType === "CAUTION"
-                                            ? "text-orange-500 font-medium"
-                                            : "text-gray-500"
-                                    }
-                                >
-                                    {firstSubstitute.decisionType === "CAUTION"
-                                        ? "(맛/간 차이 주의)"
-                                        : "(대체 가능)"}
-                                </span>
-                            </div>
-                        )}
-
 
                         {/* 추천 이유 */}
                         {reason && (
@@ -255,6 +269,54 @@ export default function Recipe({
                                 </div>
                                 {llmExplanation}
                             </div>
+                        )}
+                        {isSubstitutionOpen && substitutionData && (
+                            <Modal
+                                isOpen={isSubstitutionOpen}
+                                title="대체재 추천"
+                                description="보유 재료를 기준으로 부족 재료의 대체 가능성을 판단했어요."
+                                onClose={() => setIsSubstitutionOpen(false)}
+                                showFooter={false}
+                            >
+                                <div className="flex flex-col gap-3">
+                                    {substitutionData?.results?.map((item, index) => (
+                                        <div
+                                            key={`${item.missingIngredient}-${index}`}
+                                            className="rounded-xl border border-gray-100 bg-white p-3"
+                                        >
+                                            <div className="flex items-center justify-between gap-2">
+                                                <div className="text-sm font-bold text-gray-800">
+                                                    {item.missingIngredient}
+                                                </div>
+
+                                                <span
+                                                    className={`
+        rounded-full
+        px-2 py-1
+        text-xs font-semibold
+        ${decisionTypeStyles[item.decisionType]}
+    `}
+                                                >
+                                                    {decisionTypeLabels[item.decisionType]}
+                                                </span>
+                                            </div>
+
+                                            {item.decisionType === "SUBSTITUTE_AVAILABLE" && (
+                                                <div className="mt-2 text-sm text-gray-700">
+                                                    대체재:{" "}
+                                                    <span className="font-semibold">
+                                                        {item.substituteIngredient}
+                                                    </span>
+                                                </div>
+                                            )}
+
+                                            <div className="mt-2 text-xs leading-relaxed text-gray-500">
+                                                {item.reason}
+                                            </div>
+                                        </div>
+                                    ))}
+                                </div>
+                            </Modal>
                         )}
 
                     </>

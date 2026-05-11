@@ -68,6 +68,7 @@ export default function RecommendationsPage() {
                             missingIngredients={recipe.missingIngredients}
                             substituteSuggestions={recipe.substituteSuggestions}
                             warnings={recipe.warnings}
+                            ownedIngredients={recipe.ownedIngredients}
                             handleClick={() => router.push(`/recipes/${recipe.recipeId}`)}
                         />
                     ))}

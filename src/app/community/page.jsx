@@ -1,28 +1,28 @@
 "use client";
 import React, { useState, useEffect } from 'react';
 import PostCard from './components/PostCard';
-import Button from '@/components/ui/Button'; // 💡 페이지네이션 이전/다음 버튼을 위해 추가
+import Button from '@/components/ui/Button'; 
 import { getAllPosts } from '@/api/postApi';
+import Loading from '@/components/ui/Loading'; // 💡 Loading 컴포넌트 임포트
 
 export default function CommunityPage() {
     const [posts, setPosts] = useState([]);
-    const [currentPage, setCurrentPage] = useState(0); // 💡 현재 페이지 (0부터 시작)
-    const [totalPages, setTotalPages] = useState(0);   // 💡 전체 페이지 수
-    const pageSize = 10; // 한 페이지당 표시할 개수
+    const [currentPage, setCurrentPage] = useState(0); 
+    const [totalPages, setTotalPages] = useState(0);   
+    const [isLoading, setIsLoading] = useState(true); // 💡 초기 로딩 상태를 true로 설정
+    const pageSize = 10; 
 
-    // 💡 currentPage가 변경될 때마다 데이터를 다시 불러옵니다.
     useEffect(() => {
         const fetchPosts = async () => {
+            setIsLoading(true); // 💡 페이지 이동 등 데이터를 다시 불러올 때도 로딩 활성화
             try {
-                // API 호출 시 현재 페이지와 페이지 사이즈를 넘겨줍니다.
                 const data = await getAllPosts(currentPage, pageSize);
-                
-                // Spring Boot의 Page 객체는 실제 배열 데이터를 'content' 필드에 담아 보냅니다.
-                // 만약 백엔드 변경이 덜 되어 배열이 통째로 온다면 data를 그대로 씁니다.
                 setPosts(data.content || data); 
                 setTotalPages(data.totalPages || 1);
             } catch (error) {
                 console.error("게시글 목록을 불러오지 못했습니다.", error);
+            } finally {
+                setIsLoading(false); // 💡 API 통신이 끝나면 무조건 로딩 해제
             }
         };
 
@@ -33,7 +33,7 @@ export default function CommunityPage() {
 
     const getImageUrl = (storagePath, storedName) => {
         if (!storedName) return placeholderSvg;
-        return `http://43.201.1.45/uploads/community/${storedName}`;
+        return `https://www.todayfridge.today/uploads/community/${storedName}`;
     };
 
     return (
@@ -50,75 +50,80 @@ export default function CommunityPage() {
                         </div>
                     </div>
                     
-                    <div className="grid-2">
-                        {posts.length > 0 ? (
-                            posts.map((post, index) => (
-                                <PostCard 
-                                    key={post.postId || index}
-                                    postId={post.postId}
-                                    title={post.title}
-                                    author={post.author}
-                                    date={new Date(post.date).toLocaleString('ko-KR', {
-                                        year: 'numeric', month: '2-digit', day: '2-digit',
-                                        hour: '2-digit', minute: '2-digit'
-                                    })}
-                                    desc={post.desc}
-                                    imageSrc={getImageUrl(post.storagePath, post.storedName)}
-                                />
-                            ))
-                        ) : (
-                            <div className="col-span-1 md:col-span-2 text-center py-10 text-[var(--text-sub)] border border-dashed rounded-xl border-[var(--border)]">
-                                등록된 후기가 없습니다. 첫 번째 후기의 주인공이 되어보세요!
-                            </div>
-                        )}
-                    </div>
-
-                    {/* 💡 페이지네이션 UI 시작 */}
-                    {totalPages > 0 && (
-                        <div className="flex justify-center items-center gap-2 mt-10">
-                            {/* 이전 버튼 */}
-                            <button 
-                                onClick={() => setCurrentPage(prev => Math.max(prev - 1, 0))}
-                                disabled={currentPage === 0}
-                                className={`px-4 py-2 rounded-lg font-bold transition ${
-                                    currentPage === 0 
-                                    ? 'bg-gray-100 text-gray-400 cursor-not-allowed' 
-                                    : 'bg-white border border-[var(--border)] text-[var(--text-sub)] hover:bg-gray-50'
-                                }`}
-                            >
-                                이전
-                            </button>
-                            
-                            {/* 페이지 번호 버튼들 */}
-                            {[...Array(totalPages)].map((_, i) => (
-                                <button
-                                    key={i}
-                                    onClick={() => setCurrentPage(i)}
-                                    className={`w-10 h-10 rounded-lg font-bold transition ${
-                                        currentPage === i 
-                                        ? 'bg-[var(--primary)] text-white shadow-sm' 
-                                        : 'bg-white border border-[var(--border)] text-[var(--text-sub)] hover:bg-gray-50'
-                                    }`}
-                                >
-                                    {i + 1}
-                                </button>
-                            ))}
-
-                            {/* 다음 버튼 */}
-                            <button 
-                                onClick={() => setCurrentPage(prev => Math.min(prev + 1, totalPages - 1))}
-                                disabled={currentPage === totalPages - 1}
-                                className={`px-4 py-2 rounded-lg font-bold transition ${
-                                    currentPage === totalPages - 1 
-                                    ? 'bg-gray-100 text-gray-400 cursor-not-allowed' 
-                                    : 'bg-white border border-[var(--border)] text-[var(--text-sub)] hover:bg-gray-50'
-                                }`}
-                            >
-                                다음
-                            </button>
+                    {/* 💡 데이터가 로딩 중일 때는 Loading 컴포넌트를 보여줌 */}
+                    {isLoading ? (
+                        <div className="flex justify-center items-center py-20 min-h-[300px]">
+                            <Loading />
                         </div>
+                    ) : (
+                        <>
+                            <div className="grid-2">
+                                {posts.length > 0 ? (
+                                    posts.map((post, index) => (
+                                        <PostCard 
+                                            key={post.postId || index}
+                                            postId={post.postId}
+                                            title={post.title}
+                                            author={post.author}
+                                            date={new Date(post.date).toLocaleString('ko-KR', {
+                                                year: 'numeric', month: '2-digit', day: '2-digit',
+                                                hour: '2-digit', minute: '2-digit'
+                                            })}
+                                            desc={post.desc}
+                                            imageSrc={getImageUrl(post.storagePath, post.storedName)}
+                                        />
+                                    ))
+                                ) : (
+                                    <div className="col-span-1 md:col-span-2 text-center py-10 text-[var(--text-sub)] border border-dashed rounded-xl border-[var(--border)]">
+                                        등록된 후기가 없습니다. 첫 번째 후기의 주인공이 되어보세요!
+                                    </div>
+                                )}
+                            </div>
+
+                            {/* 페이지네이션 UI */}
+                            {totalPages > 0 && (
+                                <div className="flex justify-center items-center gap-2 mt-10">
+                                    <button 
+                                        onClick={() => setCurrentPage(prev => Math.max(prev - 1, 0))}
+                                        disabled={currentPage === 0}
+                                        className={`px-4 py-2 rounded-lg font-bold transition ${
+                                            currentPage === 0 
+                                            ? 'bg-gray-100 text-gray-400 cursor-not-allowed' 
+                                            : 'bg-white border border-[var(--border)] text-[var(--text-sub)] hover:bg-gray-50'
+                                        }`}
+                                    >
+                                        이전
+                                    </button>
+                                    
+                                    {[...Array(totalPages)].map((_, i) => (
+                                        <button
+                                            key={i}
+                                            onClick={() => setCurrentPage(i)}
+                                            className={`w-10 h-10 rounded-lg font-bold transition ${
+                                                currentPage === i 
+                                                ? 'bg-[var(--primary)] text-white shadow-sm' 
+                                                : 'bg-white border border-[var(--border)] text-[var(--text-sub)] hover:bg-gray-50'
+                                            }`}
+                                        >
+                                            {i + 1}
+                                        </button>
+                                    ))}
+
+                                    <button 
+                                        onClick={() => setCurrentPage(prev => Math.min(prev + 1, totalPages - 1))}
+                                        disabled={currentPage === totalPages - 1}
+                                        className={`px-4 py-2 rounded-lg font-bold transition ${
+                                            currentPage === totalPages - 1 
+                                            ? 'bg-gray-100 text-gray-400 cursor-not-allowed' 
+                                            : 'bg-white border border-[var(--border)] text-[var(--text-sub)] hover:bg-gray-50'
+                                        }`}
+                                    >
+                                        다음
+                                    </button>
+                                </div>
+                            )}
+                        </>
                     )}
-                    {/* 💡 페이지네이션 UI 끝 */}
                 </section>
             </div>
         </main>

@@ -4,13 +4,13 @@ import { useEffect, useState } from "react";
 import { getAllRecipes } from "@/api/recipeApi";
 import { checkBookmarkStatus } from "@/api/bookmarkApi";
 import { getMeApi } from "@/api/authApi";
-import PrivateLayout from "@/components/layout/private/PrivateLayout";
 import Section from "@/components/ui/Section";
 import Recipe from "@/components/ui/Recipe";
 import { useRouter } from "next/navigation";
 import Pagination from "@/components/ui/Pagination";
 import FilterTabs from "./components/FilterTabs";
 import Select from "@/components/ui/Select";
+import PublicLayout from "@/components/layout/public/PublicLayout";
 
 
 export default function RecipesPage() {
@@ -34,6 +34,7 @@ export default function RecipesPage() {
     const sortOptions = [
         { label: "기본순", value: "default" },
         { label: "조리시간순", value: "time_asc" },
+        { label: "난이도순", value: "difficulty_asc" },
         { label: "이름순", value: "name" },
     ];
     useEffect(() => {
@@ -53,7 +54,7 @@ export default function RecipesPage() {
     }, [page, cookingType, sort]);
 
     return (
-        <PrivateLayout>
+        <PublicLayout>
             <Section>
                 <div className="mb-6 flex items-center justify-between">
                     <FilterTabs
@@ -77,12 +78,13 @@ export default function RecipesPage() {
                 </div>
                 <div className="grid md:grid-cols-3 gap-6">
                     {recipes.map(recipe => (
+                        console.log(recipe),
                         <Recipe
                             key={recipe.recipeId}
                             recipeId={recipe.recipeId}
                             name={recipe.title}
                             time={recipe.cookTimeText}
-                            difficulty={recipe.difficultyLevel || "보통"}
+                            difficulty={recipe.difficulty || "보통"}
                             handleClick={() =>
                                 router.push(`/recipes/${recipe.recipeId}`)
                             }
@@ -96,6 +98,6 @@ export default function RecipesPage() {
                     onPageChange={(p) => setPage(p - 1)}
                 />
             </Section>
-        </PrivateLayout>
+        </PublicLayout>
     )
 }

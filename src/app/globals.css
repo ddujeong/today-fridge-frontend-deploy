@@ -101,6 +101,18 @@ img {
   color: var(--bg);
 }
 
+.themeAction {
+  background-color: var(--soft-bg) !important;
+  color: var(--text-main) !important;
+  border: 1px solid var(--border) !important;
+  font-weight: 700;
+  cursor: pointer;
+}
+
+.themeAction:hover {
+  background-color: #f1e7da !important;
+}
+
 /* ========================================
    Mockup CSS Additions
 ======================================== */

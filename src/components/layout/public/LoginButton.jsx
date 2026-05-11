@@ -44,15 +44,27 @@ export default function LoginButton() {
             await loginApi(loginId, password);
             // AuthContext의 login 함수를 호출합니다. 닉네임 조회는 login 함수 내부에서 처리됩니다.
             await login(loginId, "general");
+
+            const redirectPath =
+                sessionStorage.getItem("redirectAfterLogin") || "/dashboard";
+
+            sessionStorage.removeItem("redirectAfterLogin");
+
             handleClose();
-            router.push("/dashboard");
+
+            router.replace(redirectPath);
         } catch (err) {
             setError(err.message || "로그인에 실패했습니다.");
         }
     };
 
     const handleKakaoLogin = () => {
-        const apiBase = process.env.NEXT_PUBLIC_API_URL || "http://localhost:8080/api";
+        const apiBase = (
+            process.env.NEXT_PUBLIC_API_URL ||
+            process.env.NEXT_PUBLIC_API_BASE_URL ||
+            "/api"
+        ).replace(/\/$/, "");
+
         window.location.href = `${apiBase}/v1/auth/kakao/login`;
     };
 

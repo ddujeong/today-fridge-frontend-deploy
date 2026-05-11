@@ -9,6 +9,7 @@ import Section from '@/components/ui/Section';
 import PostCard from '@/app/community/components/PostCard';
 import { getBookmarkedRecipes } from '@/api/bookmarkApi';
 import { uploadImages, createPost, getUserPosts } from '@/api/postApi';
+// 💡 fileAssetPublicUrl 임포트 제거됨
 
 export default function CommunityRegisterPage() {
     const [images, setImages] = useState([]);
@@ -70,9 +71,10 @@ export default function CommunityRegisterPage() {
         };
     }, [images]);
     
+    // 💡 이미지 경로 직접 지정 방식으로 수정됨
     const getImageUrl = (storagePath, storedName) => {
         if (!storedName) return placeholderSvg;
-        return `http://43.201.1.45/uploads/community/${storedName}`;
+        return `https://www.todayfridge.today/uploads/community/${storedName}`;
     };
 
     const processFiles = (files) => {
@@ -186,7 +188,7 @@ export default function CommunityRegisterPage() {
                                 {bookmarkedRecipes.length > 0 ? (
                                     bookmarkedRecipes.map((item) => (
                                         <option key={item.recipeId} value={item.recipeId}>
-                                            {item.title} {/* 수정된 부분: recipeName -> title */}
+                                            {item.title}
                                         </option>
                                     ))
                                 ) : (
@@ -227,7 +229,7 @@ export default function CommunityRegisterPage() {
                             </div>
                         </div>
 
-                        {/* 복구: 버튼 그룹 (로딩 상태 및 전체 이미지 제거) */}
+                        {/* 버튼 그룹 (로딩 상태 및 전체 이미지 제거) */}
                         <div className="flex flex-wrap gap-2 mt-5">
                             <Button variant="primary" handleClick={handleSubmit} disabled={isLoading}>
                                 {isLoading ? (
@@ -273,19 +275,10 @@ export default function CommunityRegisterPage() {
                                 <img className="w-full h-full object-cover" src={placeholderSvg} alt="후기 이미지 예시" />
                             </div>
                         )}
-
-                        <p className="text-sm text-[var(--text-sub)] mb-4">
-                            게시글 이미지는 최대 5장까지 허용하는 문서 기준을 반영한 예시 영역입니다. (드래그 앤 드롭 지원)
-                        </p>
-                        <div className="flex flex-wrap gap-2">
-                            <CustomTag variant="secondary">UUID 파일명 저장</CustomTag>
-                            <CustomTag variant="secondary">Local/NFS 대응</CustomTag>
-                            <CustomTag color="success">jpg/png/webp</CustomTag>
-                        </div>
                     </Card>
                 </div>
 
-                {/* 복구: 최근 후기 목록 섹션 */}
+                {/* 최근 후기 목록 섹션 */}
                 <div className="flex items-end justify-between gap-4 mb-5 px-2">
                     <div>
                         <h2 className="text-2xl font-bold m-0">최근 후기</h2>

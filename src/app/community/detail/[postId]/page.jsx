@@ -47,7 +47,6 @@ export default function CommunityDetailPage() {
 
     // 2. 유저 ID가 확인된 후 게시글 상세 정보 및 상태 로드하기
     useEffect(() => {
-        // userId가 아직 없으면 (null 상태) API 호출 대기
         if (!currentUserId) return;
 
         const fetchDetail = async () => {
@@ -58,8 +57,11 @@ export default function CommunityDetailPage() {
                 // 타인의 글일 경우 북마크, 신고, 팔로우 상태 조회
                 if (data.authorUserId !== currentUserId) {
                     if (data.recipeId) {
-                        const bookmarkData = await checkBookmarkStatus(currentUserId, data.recipeId);
-                        setIsBookmarked(bookmarkData.isBookmarked);
+                        // 💡 수정됨: 파라미터 순서를 (recipeId, userId)로 변경
+                        const bookmarkData = await checkBookmarkStatus(data.recipeId);
+                        setIsBookmarked(
+                            bookmarkData === true || bookmarkData?.isBookmarked === true
+                        );
                     }
                     const reportData = await getPostReportStatus(postId, currentUserId);
                     setIsReported(reportData.isReported);
@@ -79,7 +81,7 @@ export default function CommunityDetailPage() {
             }
         };
         fetchDetail();
-    }, [postId, currentUserId]); // postId나 currentUserId가 변경될 때 실행
+    }, [postId, currentUserId]); 
 
     const handleDelete = async () => {
         if (confirm("정말로 이 게시글을 삭제하시겠습니까?")) {
@@ -112,10 +114,12 @@ export default function CommunityDetailPage() {
         setIsBookmarkLoading(true);
         try {
             if (isBookmarked) {
-                await removeBookmark(currentUserId, post.recipeId);
+                // 💡 수정됨: 파라미터 순서를 (recipeId, userId)로 변경
+                await removeBookmark(post.recipeId);
                 setIsBookmarked(false);
             } else {
-                await addBookmark(currentUserId, post.recipeId);
+                // 💡 수정됨: 파라미터 순서를 (recipeId, userId)로 변경
+                await addBookmark(post.recipeId);
                 setIsBookmarked(true);
             }
         } catch (error) {
@@ -192,7 +196,7 @@ export default function CommunityDetailPage() {
                 <div className="image-box image-rounded thumb-16-10 mb-5 relative group">
                     <img 
                         className="image-cover w-full h-full object-cover transition-all duration-300" 
-                        src={images[currentImageIndex] ? `http://43.201.1.45/uploads/community/${images[currentImageIndex].storedName}` : "/placeholder.svg"} 
+                        src={images[currentImageIndex] ? `https://www.todayfridge.today/uploads/community/${images[currentImageIndex].storedName}` : "/placeholder.svg"} 
                         alt={`상세 이미지 ${currentImageIndex + 1}`} 
                     />
                     {hasMultipleImages && (

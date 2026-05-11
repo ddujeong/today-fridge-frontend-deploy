@@ -90,12 +90,10 @@ describe('RecipePage (레시피 상세 페이지)', () => {
 
     // 1. 초기 렌더링 및 데이터 표시 테스트
     it('레시피 상세 정보를 불러와서 올바르게 표시한다', async () => {
-        render(<RecipePage params={mockParams} />); // 컴포넌트를 렌더링합니다.
+        const component = await RecipePage({ params: mockParams });
+        render(component); // 컴포넌트를 렌더링합니다.
 
-        // 로딩 상태 확인: 데이터를 불러오는 동안 표시되는 메시지를 검증합니다.
-        expect(screen.getByText(/레시피 정보를 불러오는 중입니다/)).toBeInTheDocument();
-
-        // 비동기 데이터 로드 완료 대기 및 UI 검증
+        // 비동기 데이터 로드 완료 UI 검증
         await waitFor(() => {
             expect(screen.getByText('맛있는 김치찌개')).toBeInTheDocument(); // 제목 표시 확인
             expect(screen.getByText('30분')).toBeInTheDocument(); // 조리 시간 표시 확인
@@ -119,7 +117,8 @@ describe('RecipePage (레시피 상세 페이지)', () => {
         // window.alert 모킹: 브라우저 알림창이 뜨는 것을 가로채서 확인합니다.
         const alertMock = vi.spyOn(window, 'alert').mockImplementation(() => {});
 
-        render(<RecipePage params={mockParams} />);
+        const component = await RecipePage({ params: mockParams });
+        render(component);
 
         // '북마크 제거' 버튼이 표시될 때까지 대기합니다.
         await waitFor(() => {
@@ -142,7 +141,8 @@ describe('RecipePage (레시피 상세 페이지)', () => {
         const user = userEvent.setup();
         const alertMock = vi.spyOn(window, 'alert').mockImplementation(() => {});
 
-        render(<RecipePage params={mockParams} />);
+        const component = await RecipePage({ params: mockParams });
+        render(component);
 
         // 데이터 로드 완료 후 '요리 완료' 버튼 확인
         await waitFor(() => {

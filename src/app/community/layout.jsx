@@ -1,10 +1,10 @@
 import React from 'react';
-import PrivateLayout from '@/components/layout/private/PrivateLayout'; // 💡 경로 확인 필요
+import PublicLayout from '@/components/layout/public/PublicLayout';
 
 export default function CommunityLayout({ children }) {
     return (
-        <PrivateLayout>
+        <PublicLayout>
             {children}
-        </PrivateLayout>
+        </PublicLayout>
     );
 }
