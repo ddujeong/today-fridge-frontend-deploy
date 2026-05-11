@@ -1,7 +1,7 @@
 "use client";
 
 import React, { useState, useEffect } from "react";
-import { useParams, useSearchParams, notFound } from "next/navigation";
+import { useSearchParams } from "next/navigation";
 import RecipeIngredients from "@/components/recipe/RecipeIngredients";
 import RecipeInfoTable from "@/components/recipe/RecipeInfoTable";
 import RecipeStep from "@/components/recipe/RecipeStep";
@@ -13,6 +13,7 @@ import { useRouter, useParams } from 'next/navigation';
 import PublicLayout from "@/components/layout/public/PublicLayout";
 
 export default function RecipePage() {
+  const router = useRouter();
   const params = useParams();
   const searchParams = useSearchParams();
   const id = params?.id;
